@@ -3,7 +3,7 @@ test: testrun clean
 
 .PHONY: testrun
 testrun: cdtw.so
-	python -Bc "import evaluate; evaluate.test_cdtw()"
+	python -Bc "import cdtw_example; cdtw_example.test_cdtw()"
 
 cdtw.so: setup.py cdtwmodule.c
 	# Just throw the cdtw.so file in the current directory
