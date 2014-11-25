@@ -15,6 +15,8 @@ Note that no normalisation is performed on the sequences, which may be desired.
 
 For convenience, running `make` builds the module, installs it in the current directory, and runs the test example found below. Run `python setup.py install` to build the module and install it system-wide.
 
+Due to [issue #2](https://github.com/Treora/cdtw/issues/2), you need to have NumPy installed before building this module (e.g. via `pip install numpy`), this is not done automatically.
+
 ### Example usage
 
 ```python
