@@ -48,7 +48,7 @@ _cdtw_sakoe_chiba(PyArrayObject* arr1, PyArrayObject* arr2, int seq_length, int 
     int seq1_length, seq2_length;
     // For now, both sequences have to be of the same length. For low values of r this restriction would be implied anyway.
     seq1_length = seq2_length = seq_length;
-    
+
     // Note: To save a little memory, our 'column' is not a full column of the DTW matrix, but only the part within r steps from the diagonal (although if 2*r+1 > seq2_length, this approach actually costs more memory). This makes the formulas a bit different than usual. For example, curr_column[1+r] always represents the element on the diagonal.
     // Columns need r+1+r elements to cover the range of the allowed time skew on both sides of the diagonal of the DTW matrix. Two extra elements are fixed to infinity to simplify finding best_value further below.
     int column_size = 1+r+1+r+1;
@@ -69,14 +69,14 @@ _cdtw_sakoe_chiba(PyArrayObject* arr1, PyArrayObject* arr2, int seq_length, int 
     }
     // We do of course need a place to start from. This forces the first matrix element to become |arr1[0]-arr2[0]|
     (*prev_column)[r+1] = 0;
-    
+
     int top_valid_row=0, bottom_valid_row;
     int col, row;
     for (col=0; col<seq1_length; col++) {
         // Pick range of rows, ensuring 0 <= j < seq2_length
         bottom_valid_row = max(1, -col+r+1);
         top_valid_row = min(column_size-2, seq2_length-1-col+r+1);
-        
+
         // Fill up this column
         for (row=bottom_valid_row; row<=top_valid_row; row++) {
             // Compute mapping to the index in the full DTW matrix.
@@ -85,10 +85,10 @@ _cdtw_sakoe_chiba(PyArrayObject* arr1, PyArrayObject* arr2, int seq_length, int 
             // Read values from the numpy array
             x1 = * (double*) PyArray_GETPTR1(arr1, i);
             x2 = * (double*) PyArray_GETPTR1(arr2, j);
-            
+
             // Compute their absolute error
             double error = fabs(x1-x2);
-            
+
             // Determine via which path to get here with lowest cumulative error
             double left_value = (*prev_column)[row+1];
             double left_under_value = (*prev_column)[row];
@@ -103,7 +103,7 @@ _cdtw_sakoe_chiba(PyArrayObject* arr1, PyArrayObject* arr2, int seq_length, int 
         curr_column = swap_temp;
     }
     // The result can be found in the upper right corner of the DTW matrix
-    double result = (*prev_column)[top_valid_row];    
+    double result = (*prev_column)[top_valid_row];
     return result;
 }
 
@@ -117,13 +117,13 @@ cdtw_sakoe_chiba(PyObject* self, PyObject* args)
     int r;
     // Output
     double dissimilarity;
-    
+
     int seq_length;
-    
+
     // Read the arguments from Python into the C variables.
     if (!PyArg_ParseTuple(args, "O!O!i", &PyArray_Type, &arr1, &PyArray_Type, &arr2, &r))
         return NULL;
-    
+
     // We can operate only on one-dimensional arrays (sequences).
     validate_input(PyArray_NDIM(arr1) == 1, "First sequence is not one-dimensional.");
     validate_input(PyArray_NDIM(arr2) == 1, "Second sequence is not one-dimensional.");
@@ -138,10 +138,10 @@ cdtw_sakoe_chiba(PyObject* self, PyObject* args)
     validate_input(PyArray_DIM(arr1, 0) == PyArray_DIM(arr2, 0),
         "The sequences should be of equal length."
     );
-    
+
     seq_length = PyArray_DIM(arr1, 0);
     validate_input(r <= seq_length, "The constraint on the time-shift, r, cannot be larger than the sequences' lengths");
-    
+
     if (r == 0) {
         // For the case r=0, we can easily optimise the algorithm as it is just the L1 norm (sum of absolute errors).
         dissimilarity = _l1_norm(arr1, arr2, seq_length);
@@ -149,7 +149,7 @@ cdtw_sakoe_chiba(PyObject* self, PyObject* args)
     else {
         dissimilarity = _cdtw_sakoe_chiba(arr1, arr2, seq_length, r);
         if (dissimilarity == E_OUT_OF_MEMORY)
-          return PyErr_NoMemory();
+            return PyErr_NoMemory();
     }
     return Py_BuildValue("d", dissimilarity);
 }
