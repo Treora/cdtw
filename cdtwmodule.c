@@ -104,6 +104,10 @@ _cdtw_sakoe_chiba(PyArrayObject* arr1, PyArrayObject* arr2, int seq_length, int 
     }
     // The result can be found in the upper right corner of the DTW matrix
     double result = (*prev_column)[top_valid_row];
+
+    free(prev_column);
+    free(curr_column);
+
     return result;
 }
 
